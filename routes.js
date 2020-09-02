@@ -1,24 +1,25 @@
 const express = require('express');
 const router = new express.Router();
-Message = require('./database');
+const asyncHandler = require('express-async-handler');
+const {getMessages, saveMessages} = require('./database');
 io = require('./websocket');
 
 
-router.get('/messages', (req, res) => {
-    console.log("retreving messages");
-    Message.find({},(err, messages) => {
-      res.send(messages);
-    })
+router.get('/', (req, res) => {
+    res.send('');
 });
 
+router.get('/messages', asyncHandler(async (req, res, next) => {
+    console.log("retreving messages");
+    data = await getMessages();
+    res.send(data);
+}));
+
 router.post('/messages', (req, res) => {
-    var message = new Message({
-        name: req.body.name,
-        text: req.body.text,
-    });
-    console.log(message);
-    message.save()
+    console.log('received message');
+    saveMessages(req.body.name, req.body.text)
     .then((data) =>{
+        console.log(data);
         res.json(data);
         io.emit('message');
     })

@@ -1,11 +1,37 @@
-const mongoose = require('mongoose');
-const MongoClient = require('mongodb').MongoClient;
-const uri = process.env.uri;
-const Message = mongoose.model('Message',{ name : String, text : String});
+const Parse = require('parse/node');
+require('dotenv').config();
 
-
-mongoose.connect(uri, err => {
-    console.log('connected', err);
+Parse.serverURL = 'https://parseapi.back4app.com'; // This is your Server URL
+Parse.initialize(
+    process.env.PARSE_APP_ID, 
+    process.env.PARSE_JS_KEY,
+    process.env.PARSE_MASTER_KEY 
     
-});
-module.exports = Message;
+  );
+
+class Message extends Parse.Object{
+    constructor(){
+        super('Message');
+        
+    }
+}
+Parse.Object.registerSubclass('Message', Message);
+
+async function getMessages(){
+    let query = new Parse.Query(Message);
+    let array = await query.find();
+    console.log(array);
+    let messages = [];
+    for (i in array) {
+        messages.push(await query.get(array[i].id));
+      }
+      return messages;
+}
+function saveMessages(name, text){
+    var message = new Message();
+    return message.save({'name': name, 'text': text});
+}
+
+
+
+module.exports = {getMessages, saveMessages};
