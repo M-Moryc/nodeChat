@@ -9,15 +9,15 @@ router.get('/', (req, res) => {
     res.send('');
 });
 
-router.get('/messages', asyncHandler(async (req, res, next) => {
+router.get('/:room/messages', asyncHandler(async (req, res, next) => {
     console.log("retreving messages");
-    data = await getMessages();
+    data = await getMessages(req.params.room);
     res.send(data);
 }));
 
-router.post('/messages', (req, res) => {
+router.post('/:room/messages', (req, res) => {
     console.log('received message');
-    saveMessages(req.body.name, req.body.text)
+    saveMessages(req.body.name, req.body.text, req.params.room)
     .then((data) =>{
         console.log(data);
         res.json(data);

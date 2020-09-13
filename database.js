@@ -17,9 +17,12 @@ class Message extends Parse.Object{
 }
 Parse.Object.registerSubclass('Message', Message);
 
-async function getMessages(){
-    let query = new Parse.Query(Message);
-    let array = await query.find();
+async function getMessages(roomName){
+    room = await getRoom(roomName);
+    console.log(room);
+    query = new Parse.Query(Message);
+    query.equalTo("roomId", room.id);
+    array = await query.find();
     console.log(array);
     let messages = [];
     for (i in array) {
@@ -27,11 +30,39 @@ async function getMessages(){
       }
       return messages;
 }
-function saveMessages(name, text){
+
+async function saveMessages(name, text, roomName){
     var message = new Message();
-    return message.save({'name': name, 'text': text});
+    let room = await getRoom(roomName);
+    console.log(room);
+    return message.save({'name': name, 'text': text, 'roomId': room.id});
+}
+
+class Room extends Parse.Object{
+    constructor(){
+        super('Room');
+        
+    }
+}
+Parse.Object.registerSubclass('Room', Room);
+
+function createRoom(name){
+    let room = new Room();
+    return room.save({'name': name});
+}
+
+async function getRoom(name){
+    const query = new Parse.Query(Room);
+    query.equalTo("name", name);
+    const results = await query.find();
+    let room = results[0];
+    if(room === undefined){
+        room = await createRoom(roomName);
+    }
+    
+    return room;
 }
 
 
 
-module.exports = {getMessages, saveMessages};
+module.exports = {getMessages, saveMessages, createRoom};
